@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>SoundShredder</title>
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+  <header>
+    <img src="icon.png" alt="" width="18" height="18">
+    <strong>SoundShredder</strong>
+    <span id="connection" class="connection" title="">Connecting…</span>
+  </header>
+
+  <div id="offline" class="offline" hidden>
+    <p id="offline-text">SoundShredder isn't running.</p>
+    <button id="launch" type="button">Open SoundShredder</button>
+  </div>
+
+  <section class="separate">
+    <button id="separate" class="primary" type="button" disabled>Separate selected clips</button>
+    <p class="hint">Select clips in the timeline first. Dialogue, Music and SFX land on three free audio tracks right under them, trimmed to match.</p>
+    <label class="check"><input type="checkbox" id="mute" checked> Mute the original audio</label>
+    <label class="field">Device
+      <select id="device">
+        <option value="auto">Auto</option>
+        <option value="mps">Apple GPU</option>
+        <option value="cuda">NVIDIA GPU</option>
+        <option value="cpu">CPU</option>
+      </select>
+    </label>
+    <p id="note" class="note" role="status" hidden></p>
+  </section>
+
+  <ul id="jobs" class="jobs"></ul>
+
+  <section class="watch">
+    <h2>Watch folder</h2>
+    <label class="check"><input type="checkbox" id="watch-import"> Import new multitrack videos into this project</label>
+    <p id="watch-info" class="hint"></p>
+  </section>
+
+  <script src="panel.js"></script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+:root {
+  --bg: #232323; --raised: #2c2c2c; --line: #3a3a3a; --text: #d6d6d6; --muted: #8f8f8f;
+  --mint: #79f6d3; --mint-ink: #0e322c; --red: #ff9d92; --amber: #e7c785;
+  --speech: #79f6d3; --music: #8eaeff; --effects: #c2a0ff;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--text); font: 12px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+body { padding: 10px 12px 16px; }
+button, select, input { font: inherit; }
+[hidden] { display: none !important; }
+
+header { display: flex; align-items: center; gap: 7px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+header strong { font-weight: 600; letter-spacing: -.1px; }
+.connection { margin-left: auto; font-size: 10px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.connection::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 5px; border-radius: 50%; background: #666; vertical-align: 1px; }
+.connection.on { color: #b9eadb; }
+.connection.on::before { background: var(--mint); box-shadow: 0 0 6px #79f6d380; }
+.connection.off::before { background: var(--red); }
+
+.offline { margin: 10px 0 0; padding: 10px; border: 1px solid #6b4c48; background: #3a2826; border-radius: 6px; }
+.offline p { margin: 0 0 8px; color: #f0c9c3; }
+
+section { padding: 12px 0; border-bottom: 1px solid var(--line); }
+h2 { margin: 0 0 8px; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+button { cursor: pointer; color: var(--text); background: var(--raised); border: 1px solid #4a4a4a; border-radius: 5px; padding: 6px 10px; }
+button:hover:not(:disabled) { border-color: #6a6a6a; }
+button:disabled { opacity: .45; cursor: default; }
+.primary { width: 100%; padding: 9px 12px; font-weight: 600; color: var(--mint-ink); background: linear-gradient(110deg, #9bffda, #79e9d7); border-color: #b1ffe3; }
+.primary:hover:not(:disabled) { background: #b4ffe8; }
+.hint { margin: 8px 0 0; font-size: 11px; color: var(--muted); }
+.check { display: flex; align-items: center; gap: 7px; margin-top: 10px; cursor: pointer; }
+.check input { margin: 0; accent-color: var(--mint); }
+.field { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; color: var(--muted); }
+select { min-width: 130px; padding: 4px 6px; color: var(--text); background: #1b1b1b; border: 1px solid #4a4a4a; border-radius: 4px; }
+.note { margin: 10px 0 0; padding: 7px 9px; border-radius: 5px; background: #2e2a20; color: var(--amber); font-size: 11px; }
+.note.error { background: #3a2826; color: #f0c9c3; }
+
+.jobs { list-style: none; margin: 0; padding: 0; }
+.job { padding: 9px 0; border-bottom: 1px solid #303030; }
+.job-top { display: flex; align-items: baseline; gap: 8px; }
+.job-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+.job-state { font-size: 9px; letter-spacing: .6px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.job.running .job-state, .job.placing .job-state { color: var(--mint); }
+.job.done .job-state { color: var(--mint); }
+.job.failed .job-state { color: var(--red); }
+.job-detail { margin-top: 3px; font-size: 10px; color: var(--muted); overflow-wrap: anywhere; }
+.job.failed .job-detail { color: #f0c9c3; }
+.job progress { width: 100%; height: 3px; margin-top: 6px; display: block; appearance: none; border: 0; background: #3a3a3a; border-radius: 3px; overflow: hidden; }
+.job progress::-webkit-progress-bar { background: #3a3a3a; }
+.job progress::-webkit-progress-value { background: var(--mint); }
+.lanes { display: flex; gap: 4px; margin-top: 6px; }
+.lanes span { font-size: 9px; padding: 2px 5px; border-radius: 3px; border-left: 2px solid var(--c); background: #2a2a2a; color: #cfcfcf; }
+.job-actions { display: flex; gap: 10px; margin-top: 4px; }
+.link { padding: 0; border: 0; background: none; color: #9fc9ff; font-size: 10px; }
+.link:hover { text-decoration: underline; }
+.watch { border-bottom: 0; }

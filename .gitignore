@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.pyc
+data/
+*.log
+artifacts/
+SoundShredder.zip
+SoundShredder-Mac.zip
+.DS_Store
+.claude/
