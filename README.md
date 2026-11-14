@@ -4,6 +4,9 @@
 
 [SoundShredder](#credits) is a local AI audio separator made by **[cyr4x](https://x.com/_cyr4x)** for the Higgsfield community. This edition adds a **Premiere Pro panel** and a **watch folder**, so separated sound lands in your edit already on its own tracks, trimmed and in sync.
 
+<p align="center">
+  <img src="docs/premiere-panel.png" width="320" alt="The SoundShredder panel after separating two clips: Dialogue, Music and SFX placed on tracks A2 to A4 and the original audio muted">
+</p>
 <p align="center"><b>Select clips → Separate → Dialogue on A2 · Music on A3 · SFX on A4</b></p>
 
 ## Why it gets the job done
