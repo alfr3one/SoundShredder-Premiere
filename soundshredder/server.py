@@ -449,9 +449,14 @@ class WatchToggle(BaseModel):
     enabled: bool
 
 
+def can_pick():
+    """A native folder picker exists on macOS (AppleScript) and Windows (PowerShell)."""
+    return sys.platform in {"darwin", "win32"}
+
+
 @app.get("/api/watch")
 def watch_status():
-    return {**watcher().snapshot(), "can_pick": sys.platform == "darwin"}
+    return {**watcher().snapshot(), "can_pick": can_pick()}
 
 
 @app.post("/api/watch")
@@ -467,7 +472,7 @@ def watch_configure(settings: WatchSettings):
         )
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
-    return {**state, "can_pick": sys.platform == "darwin"}
+    return {**state, "can_pick": can_pick()}
 
 
 @app.post("/api/watch/enabled")
@@ -476,7 +481,7 @@ def watch_toggle(toggle: WatchToggle):
         state = watcher().set_enabled(toggle.enabled)
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
-    return {**state, "can_pick": sys.platform == "darwin"}
+    return {**state, "can_pick": can_pick()}
 
 
 @app.post("/api/watch/retry")
@@ -485,7 +490,7 @@ def watch_retry(item: dict):
         state = watcher().retry(str(item.get("name", "")))
     except KeyError as exc:
         raise HTTPException(404, "That video is not waiting for a retry.") from exc
-    return {**state, "can_pick": sys.platform == "darwin"}
+    return {**state, "can_pick": can_pick()}
 
 
 @app.post("/api/watch/reveal")
@@ -511,23 +516,42 @@ PICK_SCRIPT = """on run argv
 end run"""
 
 
+# Windows: the prompt arrives through an environment variable, so it is never parsed as code.
+PICK_POWERSHELL = """Add-Type -AssemblyName System.Windows.Forms
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$owner = New-Object System.Windows.Forms.Form -Property @{TopMost = $true; ShowInTaskbar = $false}
+$dialog = New-Object System.Windows.Forms.FolderBrowserDialog
+$dialog.Description = $env:SOUNDSHREDDER_PROMPT
+$dialog.ShowNewFolderButton = $true
+if ($dialog.ShowDialog($owner) -eq [System.Windows.Forms.DialogResult]::OK) { $dialog.SelectedPath }
+$owner.Dispose()"""
+
+
 @app.post("/api/watch/pick")
 def watch_pick(target: dict):
-    """Show the macOS folder picker. The browser cannot reveal a folder's real path."""
-    if sys.platform != "darwin":
+    """Show the system folder picker. The browser cannot reveal a folder's real path."""
+    if not can_pick():
         raise HTTPException(501, "Type or paste the folder path instead.")
     prompt = "Choose the folder to watch for new videos"
     if target.get("folder") == "output":
         prompt = "Choose where to save the multitrack videos"
+    if sys.platform == "win32":
+        command = ["powershell", "-NoProfile", "-NonInteractive", "-STA", "-Command", PICK_POWERSHELL]
+        options = {"env": {**os.environ, "SOUNDSHREDDER_PROMPT": prompt},
+                   "creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0)}
+    else:
+        command, options = ["osascript", "-e", PICK_SCRIPT, prompt], {}
     try:
         result = subprocess.run(
-            ["osascript", "-e", PICK_SCRIPT, prompt], capture_output=True, text=True, timeout=600, check=False
+            command, capture_output=True, encoding="utf-8", errors="replace", timeout=600, check=False, **options
         )
-    except subprocess.TimeoutExpired:
+    except (OSError, subprocess.TimeoutExpired):
         return {"path": None}
     path = result.stdout.strip()
     if result.returncode or not path:
         return {"path": None}  # cancelled
+    if sys.platform == "win32":
+        return {"path": path if path.endswith(":\\") else path.rstrip("\\")}
     return {"path": path.rstrip("/") or "/"}
 
 

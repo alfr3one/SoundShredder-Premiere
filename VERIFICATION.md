@@ -1,5 +1,11 @@
 # Verification on this computer
 
+## Windows support, added on the same M2 Max (not yet run on Windows)
+
+- **Added:** `Start SoundShredder.bat`, `Setup CPU.bat` and `Setup NVIDIA GPU.bat` (sharing `scripts/windows-python.bat` to find Python 3.10–3.13), the panel installer `premiere-panel/install.bat` and `uninstall.bat` (a directory junction into `%APPDATA%\Adobe\CEP\extensions` plus `PlayerDebugMode` in the registry), a Windows folder picker in the app (PowerShell's FolderBrowserDialog, with the prompt passed through the environment), and panel buttons that use Explorer and `Start SoundShredder.bat` on Windows.
+- **Checked here:** new API tests for the folder picker on macOS and Windows (path trimming, a drive root, cancel, unsupported systems); 79 tests passed and 3 were skipped, and Ruff passed. The panel loaded in jsdom without errors and, through the installed extension link, found the real SoundShredder folder and its launcher. The batch files are ASCII with CRLF line endings.
+- **Not checked:** none of the Windows files has been run on a Windows PC, and the panel has not been loaded in Premiere Pro for Windows.
+
 ## Premiere Pro panel, added on the same M2 Max
 
 - **Server side, with the real model** (separate test server and data folder, Apple GPU): two clips sent through `POST /api/clips` were queued and separated one after the other (about 42 s and 90 s). The three stems landed in `SoundShredder Stems/<name> - Stems/` next to the footage, one under an Arabic name. Asking again for the same unchanged file reused the finished job at once.

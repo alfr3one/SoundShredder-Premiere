@@ -1,6 +1,6 @@
 # SoundShredder for Premiere Pro
 
-**Split any clip into Dialogue, Music and SFX inside your Premiere Pro timeline, in one click, on your own Mac.**
+**Split any clip into Dialogue, Music and SFX inside your Premiere Pro timeline, in one click, on your own computer (Mac or Windows).**
 
 [SoundShredder](#credits) is a local AI audio separator made by **[cyr4x](https://x.com/_cyr4x)** for the Higgsfield community. This edition adds a **Premiere Pro panel** and a **watch folder**, so separated sound lands in your edit already on its own tracks, trimmed and in sync.
 
@@ -48,12 +48,14 @@
 
 ## Requirements
 
-- macOS 12 or newer. Apple Silicon is recommended (it uses the GPU); Intel Macs run on the CPU.
-- [Python 3.11](https://www.python.org/downloads/release/python-3119/) (macOS universal2 installer).
-- Premiere Pro 2022 (version 22) or newer for the panel. Tested on Premiere Pro 2026.
+- **Mac:** macOS 12 or newer and [Python 3.11](https://www.python.org/downloads/release/python-3119/) (macOS universal2 installer). Apple Silicon uses its GPU; Intel Macs run on the CPU.
+- **Windows:** Windows 10 or 11 (64-bit) and [Python 3.12](https://www.python.org/downloads/) with **Add python.exe to PATH** ticked. An NVIDIA GPU makes it much faster; without one it runs on the CPU.
+- Premiere Pro 2022 (version 22) or newer for the panel. Tested on Premiere Pro 2026 on a Mac.
 - Clips up to 10 minutes and 500 MB per source file.
 
-## Install
+> **Windows support is new.** The Windows launchers and panel installer follow the same steps as the Mac versions but have not yet been run on a Windows PC. If something fails, please open an issue with the message you see.
+
+## Install on Mac
 
 1. **Install Python 3.11** from the link above.
 2. **Download this repository:** click **Code › Download ZIP**, unzip it, and move the folder to Documents (or any folder you can write to).
@@ -70,17 +72,29 @@
 
 To remove the panel later, run `bash premiere-panel/uninstall.sh`.
 
+## Install on Windows
+
+1. **Install Python 3.12** from the link above and tick **Add python.exe to PATH** in the installer.
+2. **Download this repository:** click **Code › Download ZIP**, then right-click the ZIP › **Extract All**, and move the folder to Documents (or any folder you can write to).
+3. **Start SoundShredder:** double-click **Start SoundShredder.bat**. The first launch installs everything it needs (with NVIDIA GPU support when an NVIDIA card is found) and opens the app at <http://127.0.0.1:7860>. Keep that window open while you work.
+   - If Windows asks whether to run it, choose **Run** (or **More info › Run anyway**).
+   - **Setup CPU.bat** installs the smaller CPU-only runtime; **Setup NVIDIA GPU.bat** switches to the NVIDIA one.
+4. **Install the Premiere panel:** open the **premiere-panel** folder and double-click **install.bat**. No administrator rights are needed.
+5. **Restart Premiere Pro** and open **Window › Extensions › SoundShredder**.
+
+To remove the panel later, double-click **premiere-panel/uninstall.bat**.
+
 ## Use
 
-**In Premiere:** keep SoundShredder open, select clips in the timeline, and click **Separate selected clips** in the panel. **Show stems in Finder** opens the saved files.
+**In Premiere:** keep SoundShredder open, select clips in the timeline, and click **Separate selected clips** in the panel. **Show stems in Finder** (Explorer on Windows) opens the saved files.
 
 **Watch folder:** in the SoundShredder app, go to **04 · Watch a folder**, choose a folder and click **Start watching**. In the panel, tick **Import new multitrack videos into this project** to bring results into Premiere automatically.
 
 **Single files:** drop any audio or video file into the app, listen to each layer, set the levels and download WAVs or a ZIP.
 
-## Windows and Linux
+## Linux
 
-The app runs there with a manual setup (see [MANUAL.md](MANUAL.md#manual-installation--other-operating-systems)): `python setup_runtime.py --device cuda` (or `--device cpu`), then start it with `.venv\Scripts\python.exe app.py` on Windows. The Premiere panel installer and the one-click launchers in this repository are for macOS only.
+The app runs with a manual setup (see [MANUAL.md](MANUAL.md#manual-installation--other-operating-systems)): `python3 setup_runtime.py --device cuda` (or `--device cpu`), then `.venv/bin/python app.py`. Premiere Pro is not available on Linux, so there is no panel there.
 
 ## More
 
@@ -121,5 +135,15 @@ The original SoundShredder was shared without a license file, so the rights to i
 3. دوس دبل كليك على **Start SoundShredder.command**. أول مرة بينزّل كل اللي محتاجه وبيفتح البرنامج. لو الماك منعه: افتح Terminal واكتب `bash ` واسحب الملف جوه ودوس Return.
 4. لتنصيب لوحة بريمير: في Terminal اكتب `bash ` واسحب ملف **premiere-panel/install.sh** ودوس Return.
 5. اقفل Premiere وافتحه تاني، وافتح **Window › Extensions › SoundShredder**.
+
+**التنصيب على ويندوز:**
+
+1. نزّل **Python 3.12** من python.org، وفي التنصيب علّم على **Add python.exe to PATH**.
+2. نزّل الريبو من **Code › Download ZIP**، واعمل كليك يمين على الملف واختار **Extract All**، وحط الفولدر في Documents.
+3. دوس دبل كليك على **Start SoundShredder.bat**. أول مرة بينزّل كل اللي محتاجه، ولو عندك كارت NVIDIA بيستخدمه. لو ويندوز سألك تشغّله ولا لأ، اختار **Run** (أو **More info** وبعدين **Run anyway**).
+4. لتنصيب لوحة بريمير: افتح فولدر **premiere-panel** ودوس دبل كليك على **install.bat**.
+5. اقفل Premiere وافتحه تاني، وافتح **Window › Extensions › SoundShredder**.
+
+دعم ويندوز جديد وما اتجرّبش لسه على جهاز ويندوز، فلو ظهرت أي رسالة خطأ ابعتها في Issues.
 
 خلي SoundShredder مفتوح وإنت شغال، واللوحة هتكتب **Connected**.

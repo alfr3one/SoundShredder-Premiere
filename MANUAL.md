@@ -57,11 +57,15 @@ Audio is 24-bit PCM at the source sample rate, placed at the source's original a
 - Watched videos are read in place, not copied. Each also gets a normal session (listed as **AUTO**) where you can listen, remix and download stems. The 10-minute limit still applies.
 - Uploaded videos get the same multitrack file: **Multitrack video (.mov)** in the results.
 
-## Premiere Pro panel (macOS)
+## Premiere Pro panel
 
 A panel inside Premiere Pro 2022 or later that separates clips straight from the timeline.
 
-**Install once:** run this, then restart Premiere Pro and open **Window › Extensions › SoundShredder**:
+**On Windows**, double-click `premiere-panel\install.bat` instead of running the script below (it links the panel into `%APPDATA%\Adobe\CEP\extensions` and sets `PlayerDebugMode` in the registry; no administrator rights needed), then restart Premiere Pro. `uninstall.bat` removes it. Windows support has not yet been run on a Windows PC.
+
+**On a Mac:**
+
+Run this once, then restart Premiere Pro and open **Window › Extensions › SoundShredder**:
 
 ```bash
 bash premiere-panel/install.sh
@@ -76,7 +80,7 @@ The script links the `premiere-panel` folder into `~/Library/Application Support
 3. Each clip is separated in turn. When it finishes, Dialogue, Music and SFX are placed on three neighbouring audio tracks that are empty under the clip (new tracks are added at the bottom when needed), trimmed to the clip's in and out points and in sync with it. The original audio is muted (turn off **Mute the original audio** to keep it). The stems go into a **SoundShredder** bin.
 
 - The whole source file is separated once, so separating the same footage again (another cut of it, or after undo) is instant. The 10-minute limit applies to the source file.
-- Stems are saved next to the footage in `SoundShredder Stems/<name> - Stems/` as `<name> - Dialogue.wav`, `- Music.wav` and `- SFX.wav` (in SoundShredder's data folder if the footage folder is read-only). **Show stems in Finder** opens the folder.
+- Stems are saved next to the footage in `SoundShredder Stems/<name> - Stems/` as `<name> - Dialogue.wav`, `- Music.wav` and `- SFX.wav` (in SoundShredder's data folder if the footage folder is read-only). **Show stems in Finder** (Explorer on Windows) opens the folder.
 - Clips with a speed change or reversed, nested sequences, and other non-file items are skipped and listed. Locked tracks are never used.
 - **Import new multitrack videos into this project** brings each finished `- Stems.mov` from the watch folder into the SoundShredder bin of the open project.
 - The panel and the app talk only on this computer (127.0.0.1). The panel needs the current SoundShredder: if it says the app is too old, quit and reopen SoundShredder.

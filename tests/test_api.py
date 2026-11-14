@@ -141,3 +141,39 @@ def test_clips_from_premiere_queue_reuse_and_cancel(client, tmp_path, monkeypatc
     third = client.post("/api/clips", json={"path": str(footage / "c.mp4")}).json()
     assert client.post(f"/api/jobs/{third['id']}/cancel").json()["status"] == "cancelled"
     assert server.PENDING == []
+
+
+@pytest.mark.parametrize(
+    ("system", "stdout", "expected", "program"),
+    [
+        ("darwin", "/Volumes/Drive/مشاهد/\n", "/Volumes/Drive/مشاهد", "osascript"),
+        ("win32", "D:\\مشاهد\\Exports\\\r\n", "D:\\مشاهد\\Exports", "powershell"),
+        ("win32", "E:\\\r\n", "E:\\", "powershell"),
+    ],
+)
+def test_folder_picker_on_mac_and_windows(client, monkeypatch, system, stdout, expected, program):
+    calls = []
+
+    def fake_run(command, **options):
+        calls.append((command, options))
+        return type("Result", (), {"returncode": 0, "stdout": stdout})()
+
+    monkeypatch.setattr(server.sys, "platform", system)
+    monkeypatch.setattr(server.subprocess, "run", fake_run)
+    assert client.get("/api/watch").json()["can_pick"] is True
+    assert client.post("/api/watch/pick", json={"folder": "output"}).json() == {"path": expected}
+    command, options = calls[0]
+    assert command[0] == program and options["encoding"] == "utf-8"
+    if system == "win32":
+        # The prompt travels in the environment, never inside the PowerShell code.
+        assert options["env"]["SOUNDSHREDDER_PROMPT"] == "Choose where to save the multitrack videos"
+        assert "SOUNDSHREDDER_PROMPT" not in command[-1].replace("$env:SOUNDSHREDDER_PROMPT", "")
+
+
+def test_folder_picker_cancelled_or_unavailable(client, monkeypatch):
+    monkeypatch.setattr(server.sys, "platform", "win32")
+    monkeypatch.setattr(server.subprocess, "run", lambda command, **_: type("R", (), {"returncode": 0, "stdout": ""})())
+    assert client.post("/api/watch/pick", json={"folder": "folder"}).json() == {"path": None}
+    monkeypatch.setattr(server.sys, "platform", "linux")
+    assert client.get("/api/watch").json()["can_pick"] is False
+    assert client.post("/api/watch/pick", json={"folder": "folder"}).status_code == 501

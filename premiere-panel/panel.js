@@ -3,8 +3,12 @@
 // computer over 127.0.0.1 and to Premiere through host/soundshredder.jsx.
 
 const http = require("http");
-const { execFile } = require("child_process");
+const fs = require("fs");
+const path = require("path");
+const { exec, execFile } = require("child_process");
 
+const IS_WINDOWS = process.platform === "win32";
+const FILE_BROWSER = IS_WINDOWS ? "Explorer" : "Finder";
 const $ = (id) => document.getElementById(id);
 const PORTS = Array.from({ length: 11 }, (_, i) => 7860 + i);
 const STEMS = ["speech", "music", "effects"];
@@ -108,11 +112,43 @@ function showConnection(on, outdated = false) {
   $("separate").disabled = !on;
 }
 
+// The SoundShredder folder: the installed extension is a link to its premiere-panel folder.
+function appFolder() {
+  try {
+    let here = decodeURIComponent(new URL(window.location.href).pathname);
+    if (IS_WINDOWS) here = here.replace(/^\//, "");
+    return path.dirname(fs.realpathSync(path.dirname(here)));
+  } catch (e) {
+    return null;
+  }
+}
+
+function launchApp(done) {
+  const root = appFolder();
+  const launcher = (name) => (root && fs.existsSync(path.join(root, name)) ? path.join(root, name) : null);
+  if (IS_WINDOWS) {
+    if (!launcher("Start SoundShredder.bat")) return done(new Error("launcher not found"));
+    exec('start "SoundShredder" "Start SoundShredder.bat"', { cwd: root }, done);
+    return;
+  }
+  execFile("open", ["-a", "SoundShredder"], (error) => {
+    // The Mac app is optional: fall back to the launcher in the SoundShredder folder.
+    const command = launcher("Start SoundShredder.command");
+    if (!error || !command) return done(error);
+    execFile("open", [command], done);
+  });
+}
+
+function showFolder(folder) {
+  // Explorer exits with 1 even when it opens the folder, so its result is ignored.
+  execFile(IS_WINDOWS ? "explorer" : "open", [folder], () => {});
+}
+
 $("launch").addEventListener("click", () => {
   $("launch").disabled = true;
   $("offline-text").textContent = "Opening SoundShredder…";
-  execFile("open", ["-a", "SoundShredder"], (error) => {
-    if (error) $("offline-text").textContent = "Could not open SoundShredder.app. Start it from its folder instead.";
+  launchApp((error) => {
+    if (error) $("offline-text").textContent = "Could not open SoundShredder. Start it from its folder instead.";
   });
   let tries = 0;
   const retry = async () => {
@@ -254,8 +290,8 @@ function render() {
     if (row.folder) {
       const actions = document.createElement("div"); actions.className = "job-actions";
       const reveal = document.createElement("button"); reveal.className = "link"; reveal.type = "button";
-      reveal.textContent = "Show stems in Finder";
-      reveal.addEventListener("click", () => execFile("open", [row.folder]));
+      reveal.textContent = `Show stems in ${FILE_BROWSER}`;
+      reveal.addEventListener("click", () => showFolder(row.folder));
       actions.append(reveal); item.append(actions);
     }
     return item;
