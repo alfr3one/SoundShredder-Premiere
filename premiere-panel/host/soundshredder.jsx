@@ -206,12 +206,95 @@ function ssClipAt(track, item, startTicks) {
     return null;
 }
 
-// args: {sequenceId, files: [dialogue, music, sfx], offsetTicks, durationTicks, clips, muteOriginal}
+// A timeline item of the separated clip itself: the same source, overlapping the clip's range.
+function ssIsSource(item, source) {
+    var project = item.projectItem;
+    return project && project.nodeId === source.nodeId &&
+        ssTicksOf(item.start) < Number(source.end) && ssTicksOf(item.end) > Number(source.start);
+}
+
+// The items of these clips on unlocked tracks (video or audio), in track order.
+function ssSourceItems(tracks, sources) {
+    var found = [];
+    for (var t = 0; t < tracks.numTracks; t++) {
+        if (tracks[t].isLocked()) continue;
+        var clips = tracks[t].clips;
+        for (var c = 0; c < clips.numItems; c++) {
+            for (var i = 0; i < sources.length; i++) {
+                if (ssIsSource(clips[c], sources[i])) {
+                    found.push(clips[c]);
+                    break;
+                }
+            }
+        }
+    }
+    return found;
+}
+
+function ssLockedSourceCount(tracks, sources) {
+    var count = 0;
+    for (var t = 0; t < tracks.numTracks; t++) {
+        if (!tracks[t].isLocked()) continue;
+        var clips = tracks[t].clips;
+        for (var c = 0; c < clips.numItems; c++) {
+            for (var i = 0; i < sources.length; i++) {
+                if (ssIsSource(clips[c], sources[i])) {
+                    count++;
+                    break;
+                }
+            }
+        }
+    }
+    return count;
+}
+
+function ssSelectOnly(sequence, items) {
+    var current = sequence.getSelection();
+    for (var i = 0; i < current.length; i++) {
+        try {
+            current[i].setSelected(false, false);
+        } catch (e) {}
+    }
+    for (i = 0; i < items.length; i++) items[i].setSelected(true, i === items.length - 1);
+}
+
+function ssShowSequence(sequence) {
+    if (!app.project.activeSequence || app.project.activeSequence.sequenceID !== sequence.sequenceID) {
+        app.project.openSequence(sequence.sequenceID);
+    }
+}
+
+// Take the clips' own audio off the timeline. The picture is unlinked from it first, so
+// removing the audio can never take the picture with it. Items are found afresh after
+// every removal, and the loop stops if Premiere refuses one.
+function ssRemoveOriginalAudio(sequence, sources) {
+    var left = ssSourceItems(sequence.audioTracks, sources), before = left.length;
+    if (!before) return { removed: 0, left: 0 };
+    try {
+        ssSelectOnly(sequence, ssSourceItems(sequence.videoTracks, sources).concat(left));
+        sequence.unlinkSelection();
+    } catch (e) {}
+    while (left.length) {
+        try {
+            left[0].remove(false, false);
+        } catch (e) {}
+        var now = ssSourceItems(sequence.audioTracks, sources);
+        if (now.length >= left.length) break;
+        left = now;
+    }
+    return { removed: before - left.length, left: left.length };
+}
+
+// args: {sequenceId, files: [dialogue, music, sfx], offsetTicks, durationTicks, clips,
+//        original: "replace" | "mute" | "keep"}
+// replace: the clip's own audio is removed and the stems are linked to its picture, so the
+// clip behaves like the original with three audio tracks.
 function ss_placeStems(argsText) {
     try {
         var args = ssParse(argsText);
         var sequence = ssSequenceById(args.sequenceId);
         if (!sequence) return ssJSON({ error: "The sequence was closed or deleted." });
+        var mode = args.original || (args.muteOriginal ? "mute" : "keep");
         var offset = Number(args.offsetTicks), duration = Number(args.durationTicks);
         var placements = [], ranges = [], warnings = [], i, k;
         for (i = 0; i < args.clips.length; i++) {
@@ -234,8 +317,18 @@ function ss_placeStems(argsText) {
         for (k = 0; k < stems.length; k++) {
             if (!stems[k]) return ssJSON({ error: "Premiere could not import " + args.files[k] });
         }
+        var sources = [];
+        for (i = 0; i < placements.length; i++) sources.push(placements[i].clip);
+        var removal = { removed: 0, left: 0 };
+        if (mode === "replace") {
+            ssShowSequence(sequence); // selecting, unlinking and linking work on the open sequence
+            var lockedAudio = ssLockedSourceCount(sequence.audioTracks, sources);
+            if (lockedAudio) warnings.push(lockedAudio + " original audio clip(s) sit on locked tracks and were left in place.");
+            removal = ssRemoveOriginalAudio(sequence, sources);
+            if (removal.left) warnings.push("Premiere did not let SoundShredder remove " + removal.left + " original audio clip(s); delete them by hand.");
+        }
         var base = ssStemTracks(sequence, stems.length, ranges);
-        var placed = 0;
+        var placed = 0, missed = 0;
         for (k = 0; k < stems.length; k++) {
             var track = sequence.audioTracks[base + k];
             for (i = 0; i < placements.length; i++) {
@@ -244,6 +337,7 @@ function ss_placeStems(argsText) {
                 track.overwriteClip(stems[k], String(Math.round(place.start)));
                 var added = ssClipAt(track, stems[k], place.start);
                 if (!added) {
+                    missed++;
                     warnings.push("A stem of " + place.clip.name + " could not be placed on A" + (base + k + 1) + ".");
                     continue;
                 }
@@ -254,8 +348,32 @@ function ss_placeStems(argsText) {
                 stems[k].clearOutPoint();
             } catch (e) {}
         }
+        if (missed && removal.removed) warnings.push("Use Edit > Undo to bring back the original audio.");
+        var linked = 0, unlinked = 0;
+        if (mode === "replace") {
+            // Each clip's picture and its three stems become one linked clip.
+            for (i = 0; i < placements.length; i++) {
+                var group = ssSourceItems(sequence.videoTracks, [placements[i].clip]);
+                for (k = 0; k < stems.length; k++) {
+                    var stemItem = ssClipAt(sequence.audioTracks[base + k], stems[k], placements[i].start);
+                    if (stemItem) group.push(stemItem);
+                }
+                if (group.length < 2) continue;
+                try {
+                    ssSelectOnly(sequence, group);
+                    sequence.linkSelection();
+                    linked++;
+                } catch (e) {
+                    unlinked++;
+                }
+            }
+            try {
+                ssSelectOnly(sequence, []);
+            } catch (e) {}
+            if (unlinked) warnings.push("Premiere did not let SoundShredder link " + unlinked + " clip(s) to their stems; link them by hand (Clip > Link).");
+        }
         var muted = 0, unmuted = 0;
-        if (args.muteOriginal) {
+        if (mode === "mute") {
             for (var t = 0; t < sequence.audioTracks.numTracks; t++) {
                 if (t >= base && t < base + stems.length) continue;
                 var clips = sequence.audioTracks[t].clips;
@@ -277,7 +395,10 @@ function ss_placeStems(argsText) {
             }
         }
         if (unmuted) warnings.push("Premiere did not let SoundShredder mute " + unmuted + " original audio clip(s); disable them by hand.");
-        return ssJSON({ placed: placed, firstTrack: base + 1, trackCount: stems.length, muted: muted, warnings: warnings });
+        return ssJSON({
+            placed: placed, firstTrack: base + 1, trackCount: stems.length, muted: muted,
+            removed: removal.removed, linked: linked, warnings: warnings
+        });
     } catch (e) {
         return ssJSON({ error: "Placing the stems failed: " + e + (e.line ? " (line " + e.line + ")" : "") });
     }

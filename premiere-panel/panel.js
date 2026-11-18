@@ -187,7 +187,7 @@ $("separate").addEventListener("click", async () => {
     }
     for (const [path, clips] of groups) {
       const row = {
-        path, clips, name: basename(path), sequenceId: selection.sequenceId, mute: $("mute").checked,
+        path, clips, name: basename(path), sequenceId: selection.sequenceId, original: $("original").value,
         status: "starting", progress: 0, detail: "Sending to SoundShredder…",
       };
       jobs.unshift(row);
@@ -245,12 +245,14 @@ async function place(row, job) {
       offsetTicks: String(Math.round(stems.audio_offset_seconds * TICKS)),
       durationTicks: String(Math.round(stems.duration * TICKS)),
       clips: row.clips,
-      muteOriginal: row.mute,
+      original: row.original,
     });
     if (result.error) { Object.assign(row, { status: "failed", detail: result.error }); return; }
     const first = result.firstTrack, last = result.firstTrack + result.trackCount - 1;
     const parts = [`On A${first}–A${last}`];
     if (row.clips.length > 1) parts.push(`${row.clips.length} clips`);
+    if (result.removed) parts.push("original replaced");
+    if (result.linked) parts.push(result.linked === row.clips.length ? "linked to the clip" : `${result.linked} linked`);
     if (result.muted) parts.push("original muted");
     Object.assign(row, {
       status: result.placed ? "done" : "failed", firstTrack: first,
@@ -302,8 +304,16 @@ function render() {
 
 $("watch-import").checked = store.get("watchImport", false);
 $("watch-import").addEventListener("change", () => { store.set("watchImport", $("watch-import").checked); syncWatch(); });
-$("mute").checked = store.get("muteOriginal", true);
-$("mute").addEventListener("change", () => store.set("muteOriginal", $("mute").checked));
+const MODE_HINTS = {
+  replace: "Select clips in the timeline first. Dialogue, Music and SFX replace each clip's audio and are linked to it: one clip with three sound tracks.",
+  mute: "Select clips in the timeline first. Dialogue, Music and SFX land on three free tracks under each clip; the original audio is muted.",
+  keep: "Select clips in the timeline first. Dialogue, Music and SFX land on three free tracks under each clip; the original audio stays as it is.",
+};
+function showModeHint() { $("mode-hint").textContent = MODE_HINTS[$("original").value]; }
+$("original").value = store.get("originalAudio", "replace");
+if (!$("original").value) $("original").value = "replace";
+showModeHint();
+$("original").addEventListener("change", () => { store.set("originalAudio", $("original").value); showModeHint(); });
 $("device").value = store.get("device", "auto");
 $("device").addEventListener("change", () => store.set("device", $("device").value));
 

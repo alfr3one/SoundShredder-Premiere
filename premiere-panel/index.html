@@ -19,8 +19,14 @@
 
   <section class="separate">
     <button id="separate" class="primary" type="button" disabled>Separate selected clips</button>
-    <p class="hint">Select clips in the timeline first. Dialogue, Music and SFX land on three free audio tracks right under them, trimmed to match.</p>
-    <label class="check"><input type="checkbox" id="mute" checked> Mute the original audio</label>
+    <p id="mode-hint" class="hint">Select clips in the timeline first.</p>
+    <label class="field">Original audio
+      <select id="original">
+        <option value="replace">Replace, link stems</option>
+        <option value="mute">Mute</option>
+        <option value="keep">Keep</option>
+      </select>
+    </label>
     <label class="field">Device
       <select id="device">
         <option value="auto">Auto</option>

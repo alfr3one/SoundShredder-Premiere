@@ -1,5 +1,12 @@
 # Verification on this computer
 
+## Premiere panel: stems replace the clip's audio and are linked to it, on the same M2 Max
+
+- **Added:** an **Original audio** choice in the panel: **Replace, link stems** (the new default), **Mute** (the old behaviour) and **Keep**. Replace unlinks the clip's picture from its own audio, removes that audio, places Dialogue, Music and SFX on the first free run of three tracks (so usually A1–A3) and links each clip's picture to its three stems with `Sequence.linkSelection()`.
+- **Timeline logic, in a simulated Premiere:** the real `host/soundshredder.jsx` ran in Node against a stand-in for Premiere's ExtendScript objects; 14 scenarios passed. Checked: stems on A1–A3 with the original removed and the picture linked to exactly the three stems; a stereo pair on A1+A2 removed while a music bed and an unselected cut of the same footage stayed (the cut still linked to its own audio); a busy A2 pushing the stems to A3–A5; two cuts of one source each linked to their own stems; an audio-only clip's three stems linked together; audio on a locked track left in place with a warning; a warning (stems still placed) when linking is refused; stems shorter than the clip; Mute and Keep unchanged; the old `muteOriginal` flag still honoured. The replace scenarios also passed with a stand-in where removing one linked item removes the whole linked group, so the picture survives even then.
+- **Panel:** `panel.js` and the host script parse; the host script uses only ES3 syntax. The controls fit at 320 px and at the 240 px minimum width without overflow (checked with the panel's stylesheet in a browser; the panel's script itself was not run there).
+- **Not checked:** none of this ran in Premiere Pro itself. That Premiere 26's `unlinkSelection`, `TrackItem.remove` and `linkSelection` behave like the stand-in is an assumption until the panel is tried on a real timeline.
+
 ## Windows support, added on the same M2 Max (not yet run on Windows)
 
 - **Added:** `Start SoundShredder.bat`, `Setup CPU.bat` and `Setup NVIDIA GPU.bat` (sharing `scripts/windows-python.bat` to find Python 3.10–3.13), the panel installer `premiere-panel/install.bat` and `uninstall.bat` (a directory junction into `%APPDATA%\Adobe\CEP\extensions` plus `PlayerDebugMode` in the registry), a Windows folder picker in the app (PowerShell's FolderBrowserDialog, with the prompt passed through the environment), and panel buttons that use Explorer and `Start SoundShredder.bat` on Windows.

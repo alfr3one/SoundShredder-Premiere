@@ -7,7 +7,7 @@
 <p align="center">
   <img src="docs/premiere-panel.png" width="320" alt="The SoundShredder panel after separating two clips: Dialogue, Music and SFX placed on tracks A2 to A4 and the original audio muted">
 </p>
-<p align="center"><b>Select clips → Separate → Dialogue on A2 · Music on A3 · SFX on A4</b></p>
+<p align="center"><b>Select clips → Separate → Dialogue, Music and SFX linked to the clip on their own tracks</b></p>
 
 ## Why it gets the job done
 
@@ -15,8 +15,8 @@
 
 - **Works from the timeline.** Select one clip or a whole scene and click **Separate selected clips**. No exporting, no round trips to another app.
 - **Cut to your edit.** Each stem is trimmed to the clip's in and out points and placed at the clip's position, with the source's audio offset applied. Nothing to line up by hand.
-- **Respects your timeline.** It finds three neighbouring audio tracks that are empty under the clip, never touches locked tracks, and adds tracks at the bottom only when it has to. Nothing you already edited is overwritten.
-- **Original muted, not deleted.** The original audio is switched off so you hear the stems; turn it back on any time, or untick **Mute the original audio**.
+- **The clip keeps behaving like one clip.** By default the clip's own audio is removed and the three stems are linked to its picture, so it moves, trims and deletes as one clip with Dialogue, Music and SFX tracks (usually A1–A3, where the original audio was). Pick **Original audio: Mute** to keep the original switched off under the stems instead, or **Keep** to leave it as it is.
+- **Respects your timeline.** It finds three neighbouring audio tracks that are empty under the clip, never touches locked tracks, and adds tracks at the bottom only when it has to. Apart from the separated clip's own audio, nothing you already edited is overwritten.
 - **Batch friendly.** Select many clips: they are separated one after another, with live progress for each clip in the panel.
 - **Separate once, reuse instantly.** The whole source file is separated once. Every other cut of the same footage gets its stems straight away.
 - **Tidy files.** Stems are saved next to the footage in `SoundShredder Stems/<clip> - Stems/` as `<clip> - Dialogue.wav`, `- Music.wav` and `- SFX.wav`, and imported into a **SoundShredder** bin.

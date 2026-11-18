@@ -77,7 +77,11 @@ The script links the `premiere-panel` folder into `~/Library/Application Support
 
 1. Keep the SoundShredder app open. The panel finds it on its own and shows **Connected**.
 2. Select one or more clips in the timeline and click **Separate selected clips**.
-3. Each clip is separated in turn. When it finishes, Dialogue, Music and SFX are placed on three neighbouring audio tracks that are empty under the clip (new tracks are added at the bottom when needed), trimmed to the clip's in and out points and in sync with it. The original audio is muted (turn off **Mute the original audio** to keep it). The stems go into a **SoundShredder** bin.
+3. Each clip is separated in turn. When it finishes, Dialogue, Music and SFX are placed on three neighbouring audio tracks that are empty under the clip (new tracks are added at the bottom when needed), trimmed to the clip's in and out points and in sync with it. The stems go into a **SoundShredder** bin.
+4. **Original audio** sets what happens to the clip's own sound:
+   - **Replace, link stems** (default): the clip's audio is removed first, so the stems usually land where it was (A1–A3), and they are linked to the clip's picture. The clip then moves, trims and deletes as one, like the original but with three audio tracks. Audio on a locked track is left in place. If a stem cannot be placed, **Edit > Undo** brings the original audio back.
+   - **Mute:** the original audio stays on its track, switched off; the stems go on three free tracks and are not linked.
+   - **Keep:** the original audio is left as it is.
 
 - The whole source file is separated once, so separating the same footage again (another cut of it, or after undo) is instant. The 10-minute limit applies to the source file.
 - Stems are saved next to the footage in `SoundShredder Stems/<name> - Stems/` as `<name> - Dialogue.wav`, `- Music.wav` and `- SFX.wav` (in SoundShredder's data folder if the footage folder is read-only). **Show stems in Finder** (Explorer on Windows) opens the folder.
